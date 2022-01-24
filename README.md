@@ -23,7 +23,7 @@ Let's look at a process that we name `myexample` that has no command line argume
 
 ```
 import (
-  "cmdline/cmdline"
+  "github.com/jimsnab/go-cmdline"
   "fmt"
   "os"
 )
@@ -224,7 +224,7 @@ package main
 import (
 	"fmt"
 	"os"
-	"cmdline/cmdline"
+	"github.com/jimsnab/go-cmdline"
 )
 
 func main() {
@@ -379,7 +379,7 @@ package main
 import (
 	"fmt"
 	"os"
-	"cmdline/cmdline"
+	"github.com/jimsnab/go-cmdline"
 )
 
 func main() {
@@ -525,7 +525,7 @@ package main
 import (
 	"fmt"
 	"os"
-	"cmdline/cmdline"
+	"github.com/jimsnab/go-cmdline"
 )
 
 func main() {
@@ -598,7 +598,7 @@ package main
 import (
 	"fmt"
 	"os"
-	"cmdline/cmdline"
+	"github.com/jimsnab/go-cmdline"
 )
 
 func main() {
