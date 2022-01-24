@@ -1,0 +1,36 @@
+package cmdline
+
+import "fmt"
+
+const basePanic = "command line template syntax error! expected "
+
+type Values map[string]interface{}
+type CommandHandler func(values Values) error
+
+type command struct {
+	Handler        CommandHandler
+	PrimaryArgSpec *argSpec
+	OptionSpecs    map[string]*argSpec
+}
+
+func (cl *CommandLine) newCommand(handler CommandHandler, specList ...string) *command {
+	cmd := command{}
+
+	cmd.Handler = handler
+
+	if len(specList) == 0 {
+		panic(fmt.Errorf("argument error: specList is required"))
+	}
+
+	spec := cl.newArgSpec(specList[0], true)
+
+	cmd.PrimaryArgSpec = spec
+
+	cmd.OptionSpecs = make(map[string]*argSpec)
+	for i := 1; i < len(specList); i++ {
+		spec := cl.newArgSpec(specList[i], false)
+		cmd.OptionSpecs[spec.Key] = spec
+	}
+
+	return &cmd
+}
