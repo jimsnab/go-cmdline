@@ -1,7 +1,9 @@
 github.com/jimsnab/go-simpleutils v0.0.0-20220125174953-66c72b8a420d h1:32gRqLnLR9SfO09Z/NXnU1zXckr8bvZtHbn3o7uckhk=
 github.com/jimsnab/go-simpleutils v0.0.0-20220125174953-66c72b8a420d/go.mod h1:dZYo7pmxew3EWiGlGqGlvqNhbOXnFIdL4kgVR8aFNrY=
-github.com/jimsnab/go-toolprinter v0.0.0-20220125185742-98dae618898f h1:RvVwm1rdXVDJnVfYfH/obixnIFbdxZqn5CUDsy/bHsY=
-github.com/jimsnab/go-toolprinter v0.0.0-20220125185742-98dae618898f/go.mod h1:j76eobdTzUlPUn+ue79t6IkFF77sIZOx/wJTnSEmuss=
+github.com/jimsnab/go-testutils v0.0.0-20220125175759-6756cb9c807d h1:k2PVf+f9TpY0Uv3+cTNP5TUOcwjDiSxxdJe3d4qFlHE=
+github.com/jimsnab/go-testutils v0.0.0-20220125175759-6756cb9c807d/go.mod h1:Yj7J+kIkMMvcT5NZ0vPfCMNA6vcpBxHrD8I8d/YHK6g=
+github.com/jimsnab/go-toolprinter v1.0.2 h1:4ic819osj8BgTXH7OGGMatp221st4dMo3nrC6ZTUcok=
+github.com/jimsnab/go-toolprinter v1.0.2/go.mod h1:j76eobdTzUlPUn+ue79t6IkFF77sIZOx/wJTnSEmuss=
 golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1 h1:SrN+KX8Art/Sf4HNj6Zcz06G7VEz+7w9tdXTPOZ7+l4=
 golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 h1:JGgROgKl9N8DuW20oFS5gxc+lE67/N3FcwmBPMe7ArY=
