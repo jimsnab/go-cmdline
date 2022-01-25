@@ -643,6 +643,18 @@ command map[-f:true text:[one two three] ~:true]
 
 To support zero or more multiple switches, make the argument optional with the asterisk first, e.g., `*[-f:<string-text>]`.
 
+## Primary Command
+
+Your program can use the parser to extract the primary command.
+
+```
+	primaryCmd := cl.PrimaryCommand(os.Args[1:])
+```
+
+This might be useful to find the primary command specified when global options are possible.
+
+An empty string is returned if the command line arguments do not map to a command.
+
 ## Extending Types
 
 You can write your own `cmdline.OptionTypes` interface to convert arguments to your own
@@ -678,3 +690,9 @@ invoke `panic` with a message explaining the error. This helps quickly spot typo
 unsupported syntax.
 
 It is not advised to try to `recover` from a registration api panic.
+
+## Console Printer
+
+The command line parser uses [toolprinter](https://github.com/jimsnab/go-toolprinter) to print to stdout.
+You can provide your own implementation of this interface by calling `SetPrinter()`, if you want
+to render help on something other than a shell terminal.

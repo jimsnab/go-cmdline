@@ -5,6 +5,8 @@ import (
 	"sort"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/jimsnab/go-simpleutils"
 )
 
 const maxLineWidth = 120
@@ -691,7 +693,7 @@ func (cl *CommandLine) Process(args []string) error {
 	}
 
 	if len(requiredOptions) > 0 {
-		return NewCommandLineError("Arguments required: %s", sortedKeys(requiredOptions))
+		return NewCommandLineError("Arguments required: %s", simpleutils.SortedKeys(requiredOptions))
 	}
 
 	//

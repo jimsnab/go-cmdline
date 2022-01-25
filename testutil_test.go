@@ -7,7 +7,12 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/jimsnab/go-simpleutils"
 )
+
+var escape = simpleutils.Escape
+
 
 func expectPanic(t *testing.T, fn func()) {
 	t.Helper()

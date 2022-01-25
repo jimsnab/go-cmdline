@@ -3,6 +3,8 @@ package cmdline
 import (
 	"fmt"
 	"strings"
+
+	"github.com/jimsnab/go-simpleutils"
 )
 
 type argValueSpec struct {
@@ -109,7 +111,7 @@ func (cl *CommandLine) newArgSpec(spec string, primaryArg bool) *argSpec {
 		as.Key = spec[:argDelimiter]
 		as.ValuesDelim = rune(spec[argDelimiter])
 
-		suffix := whichSuffix(as.Key, " [", "[")
+		suffix := simpleutils.WhichSuffix(as.Key, " [", "[")
 		if suffix != nil {
 			as.Key = as.Key[:argDelimiter-1]
 			if *suffix == " [" {
@@ -180,7 +182,7 @@ func (cl *CommandLine) newArgSpec(spec string, primaryArg bool) *argSpec {
 			}
 
 			avs.OptionName = spec[parsePos:closeBracket]
-			if !isTokenName(avs.OptionName) {
+			if !simpleutils.IsTokenName(avs.OptionName) {
 				panic(parseError("valid option name", orgSpec, spec, parsePos))
 			}
 
@@ -217,7 +219,7 @@ func (cl *CommandLine) newArgSpec(spec string, primaryArg bool) *argSpec {
 		as.Unnamed = true
 	}
 
-	if !isTokenName(strings.Trim(as.Key, "-")) && !as.Unnamed {
+	if !simpleutils.IsTokenName(strings.Trim(as.Key, "-")) && !as.Unnamed {
 		panic(parseError("a valid argument token", orgSpec, spec, 0))
 	}
 
