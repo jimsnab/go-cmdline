@@ -219,7 +219,11 @@ func (cl *CommandLine) newArgSpec(spec string, primaryArg bool) *argSpec {
 		as.Unnamed = true
 	}
 
-	if !simpleutils.IsTokenName(strings.Trim(as.Key, "-")) && !as.Unnamed {
+	// remove leading dash or dash-dash
+	trimmedKey := strings.TrimPrefix(as.Key, "-")
+	trimmedKey = strings.TrimPrefix(trimmedKey, "-")
+
+	if !simpleutils.IsTokenNameWithMiddleChars(trimmedKey, "-") && !as.Unnamed {
 		panic(parseError("a valid argument token", orgSpec, spec, 0))
 	}
 
@@ -295,8 +299,6 @@ func (as *argSpec) Parse(effectiveArgs *map[string]interface{}, colonValue *stri
 			return 0, NewCommandLineError("Required value %s is missing", as.ValueSpecs[0].OptionName)
 		}
 
-		(*effectiveArgs)[as.Key] = true
-
 		if len(as.ValueSpecs) > 0 {
 			for _, valueSpec := range as.ValueSpecs {
 				(*effectiveArgs)[valueSpec.OptionName] = valueSpec.DefaultValue
@@ -353,6 +355,8 @@ func (as *argSpec) Parse(effectiveArgs *map[string]interface{}, colonValue *stri
 			}
 		}
 	}
+
+	(*effectiveArgs)[as.Key] = true
 
 	return argsUsed, nil
 }

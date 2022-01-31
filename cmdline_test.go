@@ -6,7 +6,22 @@ import (
 	"path"
 	"strconv"
 	"testing"
+
+	"github.com/jimsnab/go-testutils"
 )
+
+var (
+	captureStdout = testutils.CaptureStdout
+	doMapsMatch = testutils.DoMapsMatch
+	expectBool = testutils.ExpectBool
+	expectError = testutils.ExpectError
+	expectErrorContainingText = testutils.ExpectErrorContainingText
+	expectPanic = testutils.ExpectPanic
+	expectPanicError = testutils.ExpectPanicError
+	expectString = testutils.ExpectString
+	expectValue = testutils.ExpectValue
+)
+
 
 type testOptionTypes struct {
 }
@@ -2862,7 +2877,6 @@ func TestUseCaseOneOptionWithHelp(t *testing.T) {
 	expectString(t, "Usage: tester <options>\n\nCommand Options:\n\n<flag>  Help me\n\n", output)
 }
 
-
 func TestUseCaseUserTool(t *testing.T) {
 
 	exampleHandler := func(args Values) error {
@@ -2905,3 +2919,77 @@ func TestUseCaseUserTool(t *testing.T) {
 
 	expectString(t, "map[--create:false --delete:false --list:true createUser: deleteUser: users:true]\n", output)
 }
+
+func TestOptionWithDash(t *testing.T) {
+	cl := NewCommandLine()
+
+	opt := ""
+
+	cl.RegisterCommand(
+		func(values Values) error {
+			opt = values["opt"].(string)
+			return nil
+		},
+		"~?Help me",
+		"--my-option <string-opt>",
+	)
+
+	args := []string{"--my-option", "test"}
+	err := cl.Process(args)
+	expectError(t, nil, err)
+
+	expectString(t, "test", opt)
+}
+
+func TestGlobalVariableMatchesSwitch(t *testing.T) {
+	cl := NewCommandLine()
+
+	optSwitch := false
+
+	cl.RegisterCommand(
+		func(values Values) error {
+			return nil
+		},
+		"~?Help me",
+	)
+
+	cl.RegisterGlobalOption(
+		func(values Values) (err error) {
+			optSwitch = values["--opt"].(bool)
+			return
+		},
+		"--opt",
+	)
+
+	args := []string{"--opt"}
+	err := cl.Process(args)
+	expectError(t, nil, err)
+
+	expectBool(t, true, optSwitch)
+
+	cl = NewCommandLine()
+
+	optSwitch = false
+
+	cl.RegisterCommand(
+		func(values Values) error {
+			return nil
+		},
+		"~?Help me",
+	)
+
+	cl.RegisterGlobalOption(
+		func(values Values) (err error) {
+			optSwitch = values["--opt"].(bool)
+			return
+		},
+		"--opt <string-opt>",
+	)
+
+	args = []string{"--opt", "test"}
+	err = cl.Process(args)
+	expectError(t, nil, err)
+
+	expectBool(t, true, optSwitch)
+}
+

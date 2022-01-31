@@ -452,7 +452,7 @@ Search help with myexample --help <filter text>. Example: myexample --help users
 Or, put a question mark on the end. Example: myexample users?
 
 $ ./myexample --env:prod users --list
-global map[env:prod]
+global map[--env:true env:prod]
 command map[--create:false --delete:false --list:true createUser: deleteUser: users:true]
 ```
 </details>
