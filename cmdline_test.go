@@ -11,17 +11,16 @@ import (
 )
 
 var (
-	captureStdout = testutils.CaptureStdout
-	doMapsMatch = testutils.DoMapsMatch
-	expectBool = testutils.ExpectBool
-	expectError = testutils.ExpectError
+	captureStdout             = testutils.CaptureStdout
+	doMapsMatch               = testutils.DoMapsMatch
+	expectBool                = testutils.ExpectBool
+	expectError               = testutils.ExpectError
 	expectErrorContainingText = testutils.ExpectErrorContainingText
-	expectPanic = testutils.ExpectPanic
-	expectPanicError = testutils.ExpectPanicError
-	expectString = testutils.ExpectString
-	expectValue = testutils.ExpectValue
+	expectPanic               = testutils.ExpectPanic
+	expectPanicError          = testutils.ExpectPanicError
+	expectString              = testutils.ExpectString
+	expectValue               = testutils.ExpectValue
 )
-
 
 type testOptionTypes struct {
 }
@@ -2908,14 +2907,14 @@ func TestUseCaseUserTool(t *testing.T) {
 		"--env:<string-env>",
 	)
 
-	args := []string{ "--env:prod", "users", "--list" }
+	args := []string{"--env:prod", "users", "--list"}
 	output := captureStdout(
-							t,
-							func() {
-								err := cl.Process(args)
-								expectError(t, err, nil)
-							},
-						) 
+		t,
+		func() {
+			err := cl.Process(args)
+			expectError(t, err, nil)
+		},
+	)
 
 	expectString(t, "map[--create:false --delete:false --list:true createUser: deleteUser: users:true]\n", output)
 }
@@ -2992,4 +2991,3 @@ func TestGlobalVariableMatchesSwitch(t *testing.T) {
 
 	expectBool(t, true, optSwitch)
 }
-

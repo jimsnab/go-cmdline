@@ -78,10 +78,10 @@ func (cl *CommandLine) checkForDuplicateNames(newCmd *command) {
 		cl.checkForDuplicateName(names, cmd.PrimaryArgSpec.Key)
 
 		cmdNames := make(map[string]bool)
-		for k,v := range names {
+		for k, v := range names {
 			cmdNames[k] = v
 		}
-		
+
 		for _, valueSpec := range cmd.PrimaryArgSpec.ValueSpecs {
 			cl.checkForDuplicateName(cmdNames, valueSpec.OptionName)
 		}

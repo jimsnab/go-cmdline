@@ -81,7 +81,7 @@ func (cl *CommandLine) Help(err error, appName string, args []string) {
 			}
 
 			// only explain filter mechanism if the help text starts getting long
-			if helpLen / 60 >= 10 {
+			if helpLen/60 >= 10 {
 
 				// pick the first command's argument for an example
 				sampleArg := ""
