@@ -1181,7 +1181,7 @@ func TestPrintCommandsTwoCommands(t *testing.T) {
 	cl.RegisterCommand(func(values Values) error { return nil }, "second?2")
 
 	output = captureStdout(t, func() { cl.PrintCommands("", true) })
-	expectString(t, "All Commands:\n\n  first   1\n    -abc  option 2\n    -x    option 1\n  second  2\n\n", output)
+	expectString(t, "All Commands:\n\n  first   1\n    -x    option 1\n    -abc  option 2\n  second  2\n\n", output)
 
 	cl = NewCommandLine()
 
@@ -2404,11 +2404,12 @@ func TestPrintHelp(t *testing.T) {
 
 	expectString(
 		t,
-		"Usage: unit-test <command> <options>\n\nCommand Options:\n\n  test              This is help\n    -t1 <value1>\n"+
-			"    -t10 <value10>\n    -t11 <value11>\n    -t12 <value12>\n    -t13 <value13>\n    -t2 <value2>\n    -t3 <value3>\n"+
-			"    -t4 <value4>\n    -t5 <value5>\n    -t6 <value6>\n    -t7 <value7>\n    -t8 <value8>\n    -t9 <value9>\n\n"+
-			"Search help with unit-test --help <filter text>. Example: unit-test --help test\nOr, put a question mark on the"+
-			" end. Example: unit-test test?\n\n",
+		"Usage: unit-test <command> <options>\n\nCommand Options:\n\n  test              "+
+			"This is help\n    -t1 <value1>\n    -t2 <value2>\n    -t3 <value3>\n    -t4 <value4>\n"+
+			"    -t5 <value5>\n    -t6 <value6>\n    -t7 <value7>\n    -t8 <value8>\n    -t9 <value9>\n"+
+			"    -t10 <value10>\n    -t11 <value11>\n    -t12 <value12>\n    -t13 <value13>\n\n"+
+			"Search help with unit-test --help <filter text>. Example: unit-test --help test\n"+
+			"Or, put a question mark on the end. Example: unit-test test?\n\n",
 		output,
 	)
 
@@ -2445,9 +2446,10 @@ func TestPrintHelp(t *testing.T) {
 
 	expectString(
 		t,
-		"Usage: unit-test <options>\n\nCommand Options:\n\n  -t1 <value1>\n  -t10 <value10>\n  -t11 <value11>\n  -t12 <value12>\n"+
-			"  -t13 <value13>\n  -t2 <value2>\n  -t3 <value3>\n  -t4 <value4>\n  -t5 <value5>\n  -t6 <value6>\n  -t7 <value7>\n"+
-			"  -t8 <value8>\n  -t9 <value9>\n\nSearch help with: unit-test --help <filter text>\n\n",
+		"Usage: unit-test <options>\n\nCommand Options:\n\n  -t1 <value1>\n  -t2 <value2>\n  -t3 <value3>\n"+
+			"  -t4 <value4>\n  -t5 <value5>\n  -t6 <value6>\n  -t7 <value7>\n  -t8 <value8>\n  -t9 <value9>\n"+
+			"  -t10 <value10>\n  -t11 <value11>\n  -t12 <value12>\n  -t13 <value13>\n\n"+
+			"Search help with: unit-test --help <filter text>\n\n",
 		output,
 	)
 }

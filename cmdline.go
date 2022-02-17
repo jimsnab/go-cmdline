@@ -21,9 +21,9 @@ type helpLine struct {
 }
 
 type CommandLine struct {
-	commands      map[string]*command
+	commands      *orderedCommandLineMap
 	unnamedCmd    *command
-	globalOptions map[string]*globalOption
+	globalOptions *orderedGlobalOptionMap
 	optionTypes   OptionTypes
 	printQueue    []helpLine
 }
@@ -39,8 +39,8 @@ func NewCustomTypesCommandLine(optionTypes OptionTypes) *CommandLine {
 func newCommandLine(optionTypes *OptionTypes) *CommandLine {
 	cl := CommandLine{}
 
-	cl.commands = make(map[string]*command)
-	cl.globalOptions = make(map[string]*globalOption)
+	cl.commands = newOrderedCommandLineMap()
+	cl.globalOptions = newOrderedGlobalOptionMap()
 
 	if optionTypes == nil {
 		cl.optionTypes = newDefaultOptionTypes()
@@ -62,12 +62,12 @@ func (cl *CommandLine) checkForDuplicateName(names map[string]bool, spec string)
 func (cl *CommandLine) checkForDuplicateNames(newCmd *command) {
 	names := make(map[string]bool)
 
-	for _, globalOpt := range cl.globalOptions {
+	for _, globalOpt := range cl.globalOptions.values {
 		cl.checkForDuplicateName(names, globalOpt.argSpec.Key)
 	}
 
-	allCommands := make([]*command, 0, len(cl.commands)+1)
-	for _, cmd := range cl.commands {
+	allCommands := make([]*command, 0, len(cl.commands.values)+1)
+	for _, cmd := range cl.commands.values {
 		allCommands = append(allCommands, cmd)
 	}
 	if newCmd != nil {
@@ -86,7 +86,7 @@ func (cl *CommandLine) checkForDuplicateNames(newCmd *command) {
 			cl.checkForDuplicateName(cmdNames, valueSpec.OptionName)
 		}
 
-		for _, optionSpec := range cmd.OptionSpecs {
+		for _, optionSpec := range cmd.OptionSpecs.values {
 			cl.checkForDuplicateName(cmdNames, optionSpec.Key)
 
 			for _, valueSpec := range optionSpec.ValueSpecs {
@@ -101,10 +101,10 @@ func (cl *CommandLine) RegisterCommand(handler CommandHandler, specList ...strin
 
 	cl.checkForDuplicateNames(cmd)
 
-	cl.commands[cmd.PrimaryArgSpec.Key] = cmd
+	cl.commands.add(cmd.PrimaryArgSpec.Key, cmd)
 
 	// unnamed command mode occurs with exactly one command that has name "~"
-	if len(cl.commands) == 1 && cmd.PrimaryArgSpec.Unnamed {
+	if len(cl.commands.values) == 1 && cmd.PrimaryArgSpec.Unnamed {
 		cl.unnamedCmd = cmd
 	} else {
 		cl.unnamedCmd = nil
@@ -114,7 +114,7 @@ func (cl *CommandLine) RegisterCommand(handler CommandHandler, specList ...strin
 func (cl *CommandLine) RegisterGlobalOption(handler CommandHandler, spec string) {
 	globalOpt := cl.newGlobalOption(handler, spec)
 
-	cl.globalOptions[globalOpt.argSpec.Key] = globalOpt
+	cl.globalOptions.add(globalOpt.argSpec.Key, globalOpt)
 
 	cl.checkForDuplicateNames(nil)
 }
@@ -294,7 +294,7 @@ func (cl *CommandLine) PrimaryCommand(args []string) string {
 	for _, arg := range args {
 		argTokens := strings.Split(arg, ":")
 		argToken := argTokens[0]
-		_, exists := cl.globalOptions[argToken]
+		_, exists := cl.globalOptions.values[argToken]
 		if !exists {
 			filteredArgs = append(filteredArgs, arg)
 		}
@@ -303,7 +303,7 @@ func (cl *CommandLine) PrimaryCommand(args []string) string {
 	for _, arg := range filteredArgs {
 		argTokens := strings.Split(arg, ":")
 		argToken := argTokens[0]
-		_, exists := cl.commands[argToken]
+		_, exists := cl.commands.values[argToken]
 		if exists {
 			return argToken
 		}
@@ -329,7 +329,7 @@ func (cl *CommandLine) printCommandWorker(cmdstr string) error {
 		cmdstr = "~"
 	}
 
-	cmd, exist := cl.commands[cmdstr]
+	cmd, exist := cl.commands.values[cmdstr]
 	if !exist {
 		if wantUnnamed {
 			return fmt.Errorf("unnamed command not found")
@@ -339,7 +339,7 @@ func (cl *CommandLine) printCommandWorker(cmdstr string) error {
 	}
 
 	// no help text specified by the template
-	if len(cmd.PrimaryArgSpec.HelpText) == 0 && len(cmd.OptionSpecs) == 0 {
+	if len(cmd.PrimaryArgSpec.HelpText) == 0 && len(cmd.OptionSpecs.values) == 0 {
 		if wantUnnamed {
 			return fmt.Errorf("help not available for the unnamed command")
 		} else {
@@ -360,18 +360,20 @@ func (cl *CommandLine) printCommandWorker(cmdstr string) error {
 		optionIndent = 0
 	}
 
-	for _, option := range cmd.OptionSpecs {
+	for _, optionName := range cmd.OptionSpecs.order {
+		option := cmd.OptionSpecs.values[optionName]
 		cl.helpPrintCols(optionIndent, option.String(), option.HelpText)
 	}
 
 	return nil
 }
 
-func optionSpecValues(m *map[string]*argSpec) []*argSpec {
-	result := make([]*argSpec, len(*m))
+func optionSpecValues(m *orderedArgSpecMap) []*argSpec {
+	result := make([]*argSpec, len(m.values))
 
 	i := 0
-	for _, v := range *m {
+	for _, name := range m.order {
+		v := m.values[name]
 		result[i] = v
 		i++
 	}
@@ -409,7 +411,8 @@ func (cl *CommandLine) printCommandsWorker(filter string, includeGlobal bool) {
 	optPartial := false
 	globalOptionsToPrint := []*globalOption{}
 	if includeGlobal {
-		for _, v := range cl.globalOptions {
+		for _, name := range cl.globalOptions.order {
+			v := cl.globalOptions.values[name]
 			if cl.shouldShow(v.argSpec, nil, filter) {
 				globalOptionsToPrint = append(globalOptionsToPrint, v)
 			} else {
@@ -428,19 +431,20 @@ func (cl *CommandLine) printCommandsWorker(filter string, includeGlobal bool) {
 	commandsToPrint := []*command{}
 	var singleCmd *command
 
-	for _, v := range cl.commands {
+	for _, name := range cl.commands.order {
+		v := cl.commands.values[name]
 		if singleCmd == nil {
 			singleCmd = v
 		} else {
 			singleCmd = nil
 		}
 
-		osv := optionSpecValues(&v.OptionSpecs)
+		osv := optionSpecValues(v.OptionSpecs)
 		if cl.shouldShow(v.PrimaryArgSpec, &osv, filter) {
 			if !v.PrimaryArgSpec.Unnamed ||
 				len(v.PrimaryArgSpec.HelpText) > 0 ||
 				len(v.PrimaryArgSpec.ValueSpecs) > 0 ||
-				len(v.OptionSpecs) > 0 {
+				len(v.OptionSpecs.values) > 0 {
 				commandsToPrint = append(commandsToPrint, v)
 			}
 		} else {
@@ -451,7 +455,7 @@ func (cl *CommandLine) printCommandsWorker(filter string, includeGlobal bool) {
 	simpleDescription := (singleCmd != nil &&
 		singleCmd.PrimaryArgSpec.Unnamed &&
 		len(singleCmd.PrimaryArgSpec.HelpText) > 0 &&
-		len(singleCmd.OptionSpecs) == 0 &&
+		len(singleCmd.OptionSpecs.values) == 0 &&
 		len(singleCmd.PrimaryArgSpec.ValueSpecs) == 0)
 
 	//
@@ -486,7 +490,7 @@ func (cl *CommandLine) printCommandsWorker(filter string, includeGlobal bool) {
 		// which heading
 		if cmdPartial {
 			cl.helpPrintln("Matching Commands:")
-		} else if len(cl.commands) > 1 {
+		} else if len(cl.commands.values) > 1 {
 			cl.helpPrintln("All Commands:")
 		} else if simpleDescription {
 			cl.helpPrintln("Description: " + singleCmd.PrimaryArgSpec.HelpText)
@@ -521,13 +525,8 @@ func (cl *CommandLine) printCommandsWorker(filter string, includeGlobal bool) {
 				}
 			}
 
-			sorted := make([]*argSpec, 0, len(cmd.OptionSpecs))
-			for _, option := range cmd.OptionSpecs {
-				sorted = append(sorted, option)
-			}
-			sort.SliceStable(sorted, func(i, j int) bool { return sortCompare(sorted[i].String(), sorted[j].String()) })
-
-			for _, option := range sorted {
+			for _, optionName := range cmd.OptionSpecs.order {
+				option := cmd.OptionSpecs.values[optionName]
 				cl.helpPrintCols(optionIndent, option.String(), option.HelpText)
 			}
 		}
@@ -535,8 +534,8 @@ func (cl *CommandLine) printCommandsWorker(filter string, includeGlobal bool) {
 		cl.helpPrintBlankln()
 	} else if len(globalOptionsToPrint) == 0 {
 		hasOptions := false
-		for _, cmd := range cl.commands {
-			if len(cmd.OptionSpecs) > 0 || len(cmd.PrimaryArgSpec.ValueSpecs) > 0 {
+		for _, cmd := range cl.commands.values {
+			if len(cmd.OptionSpecs.values) > 0 || len(cmd.PrimaryArgSpec.ValueSpecs) > 0 {
 				hasOptions = true
 				break
 			}
@@ -576,7 +575,7 @@ func (cl *CommandLine) Process(args []string) error {
 	// Enforce minimum requirements.
 	//
 
-	if len(cl.commands) == 0 {
+	if len(cl.commands.values) == 0 {
 		panic(fmt.Errorf("a command option is required"))
 	}
 
@@ -591,7 +590,7 @@ func (cl *CommandLine) Process(args []string) error {
 		arg := args[i]
 		globalArgSwitch, globalArgValue := cl.splitColon(arg)
 
-		globalOpt, exists := cl.globalOptions[globalArgSwitch]
+		globalOpt, exists := cl.globalOptions.values[globalArgSwitch]
 		if exists {
 			gotr, argsUsed, err := cl.newGlobalOptionToRun(globalOpt, globalArgValue, args[i+1:])
 			if err != nil {
@@ -647,7 +646,7 @@ func (cl *CommandLine) Process(args []string) error {
 		primaryArgSwitch, primaryArgValue = cl.splitColon(args[0])
 
 		var exists bool
-		cmd, exists = cl.commands[primaryArgSwitch]
+		cmd, exists = cl.commands.values[primaryArgSwitch]
 		if !exists {
 			return NewCommandLineError("Unrecognized command: " + primaryArgSwitch)
 		}
@@ -664,7 +663,7 @@ func (cl *CommandLine) Process(args []string) error {
 
 	requiredOptions := make(map[string]bool)
 
-	for _, optionSpec := range cmd.OptionSpecs {
+	for _, optionSpec := range cmd.OptionSpecs.values {
 		if !optionSpec.Optional {
 			requiredOptions[optionSpec.Key] = true
 		}
@@ -673,7 +672,7 @@ func (cl *CommandLine) Process(args []string) error {
 	for i := argBaseIndex + argsUsed; i < len(args); i++ {
 		optionArgSwitch, optionArgValue := cl.splitColon(args[i])
 
-		optionSpec, exists := cmd.OptionSpecs[optionArgSwitch]
+		optionSpec, exists := cmd.OptionSpecs.values[optionArgSwitch]
 		if !exists {
 			return NewCommandLineError("Unrecognized command argument: " + optionArgSwitch)
 		}
@@ -700,7 +699,7 @@ func (cl *CommandLine) Process(args []string) error {
 	// Put empty values in for all optional and unspecified options.
 	//
 
-	for _, optionSpec := range cmd.OptionSpecs {
+	for _, optionSpec := range cmd.OptionSpecs.values {
 		if optionSpec.Optional {
 			cl.addDefaults(cmdToRun, optionSpec)
 		}

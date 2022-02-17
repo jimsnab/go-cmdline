@@ -1,11 +1,13 @@
+github.com/djherbis/atime v1.1.0 h1:rgwVbP/5by8BvvjBNrbh64Qz33idKT3pSnMSJsxhi0g=
+github.com/djherbis/atime v1.1.0/go.mod h1:28OF6Y8s3NQWwacXc5eZTsEsiMzp7LF8MbXE+XJPdBE=
 github.com/jimsnab/go-simpleutils v0.0.0-20220125174953-66c72b8a420d/go.mod h1:dZYo7pmxew3EWiGlGqGlvqNhbOXnFIdL4kgVR8aFNrY=
-github.com/jimsnab/go-simpleutils v1.0.8/go.mod h1:dZYo7pmxew3EWiGlGqGlvqNhbOXnFIdL4kgVR8aFNrY=
-github.com/jimsnab/go-simpleutils v1.0.11 h1:17tmrsEt0CI0ZPeOgstcvzxgeM9g2C9dG2+SjEX0G+0=
 github.com/jimsnab/go-simpleutils v1.0.11/go.mod h1:dZYo7pmxew3EWiGlGqGlvqNhbOXnFIdL4kgVR8aFNrY=
+github.com/jimsnab/go-simpleutils v1.0.12 h1:DdL/0OvpFHmDNbzaC1NnZNGvd3+l5akUQHBRbyQdhvM=
+github.com/jimsnab/go-simpleutils v1.0.12/go.mod h1:RudIoMHFP5s+x86U0VOX4Ij3aqDFDf+gxPGor8stRC4=
 github.com/jimsnab/go-testutils v0.0.0-20220125175759-6756cb9c807d h1:k2PVf+f9TpY0Uv3+cTNP5TUOcwjDiSxxdJe3d4qFlHE=
 github.com/jimsnab/go-testutils v0.0.0-20220125175759-6756cb9c807d/go.mod h1:Yj7J+kIkMMvcT5NZ0vPfCMNA6vcpBxHrD8I8d/YHK6g=
-github.com/jimsnab/go-toolprinter v1.0.6 h1:DtpP2gJK0ibqLfHwRhSG8y01kxn2Yx0d8lKUvYFZ/U8=
-github.com/jimsnab/go-toolprinter v1.0.6/go.mod h1:jX93NcjECTFqx1JQdLn0JxOia2keFsoq1tECMTSzHSI=
+github.com/jimsnab/go-toolprinter v1.0.7 h1:bb5GW+HviGQ+0JOJv4dJM5lCCXq9+2oCijaDk6uYU68=
+github.com/jimsnab/go-toolprinter v1.0.7/go.mod h1:G/Tc7l1GtRJWY0wk2hUZ3yN3z9c7tF3GZbn6vNkfr84=
 golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220209214540-3681064d5158 h1:rm+CHSpPEEW2IsXUib1ThaHIjuBVZjxNgSKmBLFfD4c=
 golang.org/x/sys v0.0.0-20220209214540-3681064d5158/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=

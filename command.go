@@ -10,7 +10,7 @@ type CommandHandler func(values Values) error
 type command struct {
 	Handler        CommandHandler
 	PrimaryArgSpec *argSpec
-	OptionSpecs    map[string]*argSpec
+	OptionSpecs    *orderedArgSpecMap
 }
 
 func (cl *CommandLine) newCommand(handler CommandHandler, specList ...string) *command {
@@ -26,10 +26,10 @@ func (cl *CommandLine) newCommand(handler CommandHandler, specList ...string) *c
 
 	cmd.PrimaryArgSpec = spec
 
-	cmd.OptionSpecs = make(map[string]*argSpec)
+	cmd.OptionSpecs = newOrderedArgSpecMap()
 	for i := 1; i < len(specList); i++ {
 		spec := cl.newArgSpec(specList[i], false)
-		cmd.OptionSpecs[spec.Key] = spec
+		cmd.OptionSpecs.add(spec.Key, spec)
 	}
 
 	return &cmd

@@ -40,17 +40,17 @@ func (cl *CommandLine) Help(err error, appName string, args []string) {
 		} else {
 			// show full help
 			var options string
-			if len(cl.globalOptions) == 0 {
+			if len(cl.globalOptions.values) == 0 {
 				options = ""
-			} else if len(cl.commands) == 1 {
+			} else if len(cl.commands.values) == 1 {
 				options = " <options>"
 			} else {
 				options = " <global options>"
 			}
 
 			cmdOptions := ""
-			for _, cmd := range cl.commands {
-				if len(cmd.OptionSpecs) > 0 || len(cmd.PrimaryArgSpec.ValueSpecs) > 0 {
+			for _, cmd := range cl.commands.values {
+				if len(cmd.OptionSpecs.values) > 0 || len(cmd.PrimaryArgSpec.ValueSpecs) > 0 {
 					cmdOptions = " <options>"
 					break
 				}
@@ -69,11 +69,11 @@ func (cl *CommandLine) Help(err error, appName string, args []string) {
 			cl.printCommandsWorker("", true)
 
 			helpLen := 0
-			for _, cmd := range cl.commands {
+			for _, cmd := range cl.commands.values {
 				helpLen += 60 // fudge factor for each line
 				helpLen += len(cmd.PrimaryArgSpec.HelpText)
 				helpLen += len(cmd.PrimaryArgSpec.String())
-				for _, optionSpec := range cmd.OptionSpecs {
+				for _, optionSpec := range cmd.OptionSpecs.values {
 					helpLen += 60 // fudge factor for each line
 					helpLen += len(optionSpec.HelpText)
 					helpLen += len(optionSpec.String())
@@ -85,8 +85,9 @@ func (cl *CommandLine) Help(err error, appName string, args []string) {
 
 				// pick the first command's argument for an example
 				sampleArg := ""
-				if len(cl.commands) > 0 {
-					for _, cmd := range cl.commands {
+				if len(cl.commands.values) > 0 {
+					for _, cmdName := range cl.commands.order {
+						cmd := cl.commands.values[cmdName]
 						sampleArg = cmd.PrimaryArgSpec.Key
 						break
 					}
