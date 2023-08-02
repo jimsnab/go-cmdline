@@ -51,6 +51,53 @@ func newCommandLine(optionTypes *OptionTypes) *CommandLine {
 	return &cl
 }
 
+func (cl *CommandLine) cmdToSummary(cmd *command) (summary map[string]any) {
+	summary = map[string]any{}
+
+	primary := map[string]string{}
+	primary[cmd.PrimaryArgSpec.String()] = cmd.PrimaryArgSpec.HelpText
+	summary["primary"] = primary
+	
+	if len(cmd.OptionSpecs.values) > 0 {
+		opts := map[string]string{}
+		for _,opt := range cmd.OptionSpecs.values {
+			opts[opt.String()] = opt.HelpText
+		}
+		summary["options"] = opts
+	}
+	return
+}
+
+// provides a map of the registered commands and options
+func (cl *CommandLine) Summary() (summary map[string]any) {
+	summary = map[string]any{}
+
+	if len(cl.globalOptions.values) > 0 {
+		opts := map[string]string{}
+		for _,gopt := range cl.globalOptions.values {
+			opts[gopt.argSpec.String()] = gopt.argSpec.HelpText
+		}
+		summary["global_options"] = opts
+	}
+
+	if cl.unnamedCmd != nil {
+		summary["unnamed"] = cl.cmdToSummary(cl.unnamedCmd)
+	}
+	
+	cmds := []any{}
+	for _,cmd := range cl.commands.values {
+		if cmd == cl.unnamedCmd {
+			continue
+		}
+		cmds = append(cmds, cl.cmdToSummary(cmd))
+	}
+	if len(cmds) > 0 {
+		summary["named"] = cmds
+	}
+
+	return
+}
+
 func (cl *CommandLine) checkForDuplicateName(names map[string]bool, spec string) {
 	_, exist := names[spec]
 	if exist {

@@ -1,6 +1,7 @@
 package cmdline
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path"
@@ -23,6 +24,12 @@ var (
 )
 
 type testOptionTypes struct {
+}
+
+func (cl *CommandLine) summaryText() string {
+	m := cl.Summary()
+	text, _ := json.Marshal(m)
+	return string(text)
 }
 
 func (tot *testOptionTypes) StringToAttributes(typeName string, spec string) *OptionTypeAttributes {
@@ -708,6 +715,8 @@ func TestPrimaryCommandUnnamed(t *testing.T) {
 
 	expectString(t, "", primary)
 
+	expectString(t, "{\"unnamed\":{\"primary\":{\"\":\"\"}}}", cl.summaryText())
+
 	args = []string{"test"}
 	primary = cl.PrimaryCommand(args)
 
@@ -726,6 +735,8 @@ func TestPrimaryCommandUnnamed(t *testing.T) {
 	primary = cl.PrimaryCommand(args)
 
 	expectString(t, "", primary)
+
+	expectString(t, "{\"unnamed\":{\"primary\":{\"\\u003carg\\u003e\":\"\"}}}", cl.summaryText())
 
 	args = []string{"test"}
 	primary = cl.PrimaryCommand(args)
@@ -746,6 +757,8 @@ func TestPrintCommandUnnamed(t *testing.T) {
 	err := cl.PrintCommand("")
 	expectError(t, fmt.Errorf("help not available for the unnamed command"), err)
 
+	expectString(t, "{\"unnamed\":{\"primary\":{\"\":\"\"}}}", cl.summaryText())
+
 	cl = NewCommandLine()
 
 	cl.RegisterCommand(
@@ -764,6 +777,8 @@ func TestPrintCommandUnnamed(t *testing.T) {
 	)
 
 	expectString(t, "Test\n", output)
+
+	expectString(t, "{\"unnamed\":{\"primary\":{\"\":\"Test\"}}}", cl.summaryText())
 
 	cl = NewCommandLine()
 
@@ -802,6 +817,8 @@ func TestPrintCommandUnnamed(t *testing.T) {
 	)
 
 	expectString(t, "<val> <val2>  Test\n", output)
+
+	expectString(t, "{\"unnamed\":{\"primary\":{\"\\u003cval\\u003e \\u003cval2\\u003e\":\"Test\"}}}", cl.summaryText())
 
 	cl = NewCommandLine()
 
@@ -847,6 +864,8 @@ func TestPrimaryCommandNamed(t *testing.T) {
 	primary = cl.PrimaryCommand(args)
 
 	expectString(t, "", primary)
+
+	expectString(t, "{\"named\":[{\"primary\":{\"test\":\"\"}}]}", cl.summaryText())
 }
 
 func TestPrintCommandNamed(t *testing.T) {
@@ -893,6 +912,8 @@ func TestPrintCommandNamed(t *testing.T) {
 
 	expectString(t, "test  Test\n", output)
 
+	expectString(t, "{\"named\":[{\"primary\":{\"test\":\"Test\"}}]}", cl.summaryText())
+
 	cl = NewCommandLine()
 
 	cl.RegisterCommand(
@@ -913,6 +934,8 @@ func TestPrintCommandNamed(t *testing.T) {
 
 	expectString(t, "test              Test\n  --option:<opt>\n", output)
 
+	expectString(t, "{\"named\":[{\"options\":{\"--option:\\u003copt\\u003e\":\"\"},\"primary\":{\"test\":\"Test\"}}]}", cl.summaryText())
+
 	cl = NewCommandLine()
 
 	cl.RegisterCommand(
@@ -932,6 +955,8 @@ func TestPrintCommandNamed(t *testing.T) {
 	)
 
 	expectString(t, "test              Test\n  --option:<opt>  This option has help\n", output)
+
+	expectString(t, "{\"named\":[{\"options\":{\"--option:\\u003copt\\u003e\":\"This option has help\"},\"primary\":{\"test\":\"Test\"}}]}", cl.summaryText())
 }
 
 func TestPrintCommandsBase(t *testing.T) {
@@ -1326,6 +1351,8 @@ func TestMissingOptionalValue(t *testing.T) {
 	err := cl.Process(args)
 	expectError(t, nil, err)
 	expectBool(t, false, hasFlag)
+
+	expectString(t,  "{\"named\":[{\"options\":{\"[--flag]\":\"\"},\"primary\":{\"test\":\"\"}}]}", cl.summaryText())
 }
 
 func TestMissingRequiredValue(t *testing.T) {
@@ -1384,6 +1411,8 @@ func TestDefaultedValue(t *testing.T) {
 	expectBool(t, false, v1)
 	expectBool(t, true, hasFlag2)
 	expectBool(t, false, v2)
+
+	expectString(t, "{\"named\":[{\"options\":{\"-x[:\\u003cv1\\u003e[,\\u003cv2\\u003e]]\":\"\"},\"primary\":{\"test\":\"\"}}]}", cl.summaryText())
 
 	cl = NewCommandLine()
 
@@ -1527,6 +1556,8 @@ func TestMultiValueString(t *testing.T) {
 
 	expectString(t, "one", flags[0])
 	expectString(t, "two", flags[1])
+
+	expectString(t, "{\"unnamed\":{\"options\":{\"*[-t:\\u003ctflag\\u003e]\":\"\"},\"primary\":{\"\":\"\"}}}", cl.summaryText())
 }
 
 func TestMultiValueInt(t *testing.T) {
@@ -2938,7 +2969,7 @@ func TestUseCaseUserTool(t *testing.T) {
 		},
 	)
 
-	expectString(t, "map[--create:false --delete:false --list:true createUser: deleteUser: users:true]\n", output)
+	expectString(t, "map[:<nil> --create:false --delete:false --list:true createUser: deleteUser: users:true]\n", output)
 }
 
 func TestOptionWithDash(t *testing.T) {
