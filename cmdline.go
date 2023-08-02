@@ -570,7 +570,10 @@ func (cl *CommandLine) splitColon(arg string) (string, *string) {
 }
 
 func (cl *CommandLine) Process(args []string) error {
+	return cl.ProcessWithContext(nil, args)
+}
 
+func (cl *CommandLine) ProcessWithContext(processingContext any, args []string) error {
 	//
 	// Enforce minimum requirements.
 	//
@@ -710,6 +713,8 @@ func (cl *CommandLine) Process(args []string) error {
 	//
 	// Execute the command.
 	//
+
+	cmdToRun.values[""] = processingContext
 
 	return cmd.Handler(cmdToRun.values)
 }

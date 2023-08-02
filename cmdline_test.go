@@ -119,6 +119,26 @@ func TestCommandRequired(t *testing.T) {
 	})
 }
 
+func TestCommandWithProcessingContext(t *testing.T) {
+	cl := NewCommandLine()
+
+	var executed any
+
+	cl.RegisterCommand(
+		func(values Values) error {
+			executed = values[""]
+			return nil
+		},
+		"~", // unnamed single argument
+	)
+
+	args := []string{}
+	err := cl.ProcessWithContext("passed thru", args)
+	
+	expectError(t, nil, err)
+	expectString(t, "passed thru", executed.(string))
+}
+
 func TestOneGlobalFalse(t *testing.T) {
 	cl := NewCommandLine()
 
