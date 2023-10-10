@@ -79,7 +79,7 @@ Fine. Let's add some help. Add `?This is an example` to the code above.
 
 <details><summary>Code</summary>
 
-```
+```go
 	cl.RegisterCommand(singleCommand, "~?This is an example")
 ```
 </details>
@@ -105,7 +105,7 @@ one. Update the same line and change the `singleCommand` handler to use the argu
 
 <details><summary>Code</summary>
 
-```
+```go
 	cl.RegisterCommand(singleCommand, "~ <string-name>?This is an example")
 
 	...
@@ -142,7 +142,7 @@ provides several commands. Here's an example.
 
 <details><summary>Code</summary>
 
-```
+```go
 func main() {
 	cl := cmdline.NewCommandLine()
 
@@ -218,7 +218,7 @@ For example, consider the following command.
 
 <details><summary>Code</summary>
 
-```
+```go
 package main
 
 import (
@@ -279,7 +279,7 @@ Values in the map are typed, so the handler code can use type assertions.
 
 <details><summary>Code</summary>
 
-```
+```go
 func myHandler(args cmdline.Values) error {
 	blockSize := args["blockSize"].(int)
 	fmt.Println(blockSize)
@@ -533,7 +533,7 @@ first value, and commas to delimit subsequent values.
 
 <details><summary>Code</summary>
 
-```
+```go
 package main
 
 import (
@@ -596,6 +596,64 @@ All Commands:
 
 $ ./myexample rangeB --third:10
 command map[--third:true begin:10 end:10 rangeB:true]
+```
+
+</details>
+
+## Subcommands
+It is possible to register two or more tokens as the "primary command".
+
+Example: suppose you wanted a command `view` with different handlers for each kind of view, such as `table` `row` and `cell`. Easy! Just use `+` to indicate a space in the primary command. Expand below for more details.
+
+<details><summary>Code</summary>
+
+```go
+package main
+
+import (
+	"fmt"
+	"os"
+	"github.com/jimsnab/go-cmdline"
+)
+
+func main() {
+	cl := cmdline.NewCommandLine()
+
+	cl.RegisterCommand(
+		func(args cmdline.Values) error {
+			fmt.Println("view table...")
+		},
+		"view+table",
+	)
+
+	cl.RegisterCommand(
+		func(args cmdline.Values) error {
+			fmt.Println("view row...")
+		},
+		"view+row",
+	)
+	
+	cl.RegisterCommand(
+		func(args cmdline.Values) error {
+			fmt.Println("view cell...")
+		},
+		"view+cell",
+	)
+
+	args := os.Args[1:] // exclude executable name in os.Args[0]
+	err := cl.Process(args)
+	if err != nil {
+		cl.Help(err, "myexample", args)
+	}
+}
+```
+</details>
+
+<details><summary>Example Run</summary>
+
+```
+$ ./myexample view table
+view table...
 ```
 
 </details>

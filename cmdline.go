@@ -698,7 +698,23 @@ func (cl *CommandLine) ProcessWithContext(processingContext any, args []string) 
 		var exists bool
 		cmd, exists = cl.commands.values[primaryArgSwitch]
 		if !exists {
-			return NewCommandLineError("Unrecognized command: " + primaryArgSwitch)
+			// try multi-token commands
+			for n := 2; n <= len(args); n++ {
+				if strings.HasPrefix(args[n-1], "-") {
+					break
+				}
+
+				primaryArgSwitch = strings.Join(args[0:n], " ")
+				cmd, exists = cl.commands.values[primaryArgSwitch]
+				if exists {
+					args = append([]string{primaryArgSwitch}, args[n:]...)
+					break
+				}
+			}
+
+			if !exists {
+				return NewCommandLineError("Unrecognized command: " + primaryArgSwitch)
+			}
 		}
 	}
 

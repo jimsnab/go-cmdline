@@ -3244,3 +3244,66 @@ func TestGlobalVariableMatchesSwitch(t *testing.T) {
 
 	expectBool(t, true, optSwitch)
 }
+
+func TestTwoNamed(t *testing.T) {
+	cl := NewCommandLine()
+
+	executed := false
+	var value string
+	cl.RegisterCommand(
+		func(values Values) error {
+			executed = true
+			value = values["test"].(string)
+			return nil
+		},
+		"test+first <string-test>",
+	)
+
+	args := []string{"test", "first", "value"}
+	err := cl.Process(args)
+
+	expectError(t, nil, err)
+	expectBool(t, true, executed)
+	expectString(t, "value", value)
+}
+
+func TestTwoByTwoNamed(t *testing.T) {
+	cl := NewCommandLine()
+
+	executed := false
+	var value string
+	cl.RegisterCommand(
+		func(values Values) error {
+			executed = true
+			value = values["test"].(string)
+			return nil
+		},
+		"test+first <string-test>",
+	)
+
+	second := false
+	cl.RegisterCommand(
+		func(values Values) error {
+			second = true
+			return nil
+		},
+		"test+second",
+	)
+
+	args := []string{"test", "first", "value"}
+	err := cl.Process(args)
+
+	expectError(t, nil, err)
+	expectBool(t, true, executed)
+	expectBool(t, false, second)
+	expectString(t, "value", value)
+
+	args = []string{"test", "second"}
+	executed = false
+	second = false
+	err = cl.Process(args)
+
+	expectError(t, nil, err)
+	expectBool(t, false, executed)
+	expectBool(t, true, second)
+}

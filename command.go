@@ -1,6 +1,8 @@
 package cmdline
 
-import "fmt"
+import (
+	"fmt"
+)
 
 const basePanic = "command line template syntax error! expected "
 

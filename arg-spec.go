@@ -107,9 +107,9 @@ func (cl *CommandLine) newArgSpec(spec string, primaryArg bool) *argSpec {
 
 	argDelimiter := strings.IndexAny(spec, ": ")
 	if argDelimiter < 0 {
-		as.Key = spec
+		as.Key = strings.ReplaceAll(spec, "+", " ")
 	} else {
-		as.Key = spec[:argDelimiter]
+		as.Key = strings.ReplaceAll(spec[:argDelimiter], "+", " ")
 		as.ValuesDelim = rune(spec[argDelimiter])
 
 		suffix := simpleutils.WhichSuffix(as.Key, " [", "[")
@@ -230,7 +230,7 @@ func (cl *CommandLine) newArgSpec(spec string, primaryArg bool) *argSpec {
 	trimmedKey := strings.TrimPrefix(as.Key, "-")
 	trimmedKey = strings.TrimPrefix(trimmedKey, "-")
 
-	if !simpleutils.IsTokenNameWithMiddleChars(trimmedKey, "-") && !as.Unnamed {
+	if !simpleutils.IsTokenNameWithMiddleChars(trimmedKey, "- ") && !as.Unnamed {
 		panic(parseError("a valid argument token", orgSpec, spec, 0))
 	}
 
