@@ -489,7 +489,7 @@ at the last position using an asterisk `*`.
 or
 
 ```
-  // named command (multiple named commands supported)
+    // named command (multiple named commands supported)
 	cl.RegisterCommand(
 		myHandler,
 		"mycommand <string-posarg1> <string-posarg2> <string-posarg3>",
@@ -499,7 +499,7 @@ or
 or
 
 ```
-  // named command (multiple named commands supported)
+    // one or more values combined into an array
 	cl.RegisterCommand(
 		myHandler,
 		"mycommand *<string-multiPosArg>",
