@@ -2,14 +2,14 @@ package cmdline
 
 type globalOptionToRun struct {
 	Option *globalOption
-	Values map[string]interface{}
+	Values map[string]any
 }
 
 func (cl *CommandLine) newGlobalOptionToRun(globalOpt *globalOption, colonValue *string, subsequentArgs []string) (*globalOptionToRun, int, error) {
 	opt := globalOptionToRun{}
 
 	opt.Option = globalOpt
-	opt.Values = make(map[string]interface{})
+	opt.Values = make(map[string]any)
 
 	argsUsed := 0
 	var err error

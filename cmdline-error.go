@@ -10,7 +10,7 @@ func (e *CommandLineError) Error() string {
 	return e.reason
 }
 
-func NewCommandLineError(format string, args ...interface{}) error {
+func NewCommandLineError(format string, args ...any) error {
 	err := new(CommandLineError)
 	err.reason = fmt.Sprintf(format, args...)
 

@@ -8,14 +8,14 @@ import (
 
 type OptionTypes interface {
 	StringToAttributes(typeName string, spec string) *OptionTypeAttributes
-	MakeValue(typeIndex int, inputValue string) (interface{}, error)
-	NewList(typeIndex int) (interface{}, error)
-	AppendList(typeIndex int, list interface{}, inputValue string) (interface{}, error)
+	MakeValue(typeIndex int, inputValue string) (any, error)
+	NewList(typeIndex int) (any, error)
+	AppendList(typeIndex int, list any, inputValue string) (any, error)
 }
 
 type OptionTypeAttributes struct {
 	Index        int
-	DefaultValue interface{}
+	DefaultValue any
 }
 
 type argType int
@@ -52,8 +52,8 @@ func (dot *defaultOptionTypes) StringToAttributes(typeName string, spec string) 
 	}
 }
 
-func (dot *defaultOptionTypes) MakeValue(typeIndex int, inputValue string) (interface{}, error) {
-	var result interface{}
+func (dot *defaultOptionTypes) MakeValue(typeIndex int, inputValue string) (any, error) {
+	var result any
 	var err error
 
 	switch argType(typeIndex) {
@@ -80,7 +80,7 @@ func (dot *defaultOptionTypes) MakeValue(typeIndex int, inputValue string) (inte
 	return result, err
 }
 
-func (dot *defaultOptionTypes) NewList(typeIndex int) (interface{}, error) {
+func (dot *defaultOptionTypes) NewList(typeIndex int) (any, error) {
 	switch argType(typeIndex) {
 	case argTypeBool:
 		return []bool{}, nil
@@ -102,7 +102,7 @@ func (dot *defaultOptionTypes) NewList(typeIndex int) (interface{}, error) {
 	}
 }
 
-func (dot *defaultOptionTypes) AppendList(typeIndex int, list interface{}, inputValue string) (interface{}, error) {
+func (dot *defaultOptionTypes) AppendList(typeIndex int, list any, inputValue string) (any, error) {
 	value, err := dot.MakeValue(typeIndex, inputValue)
 	if err != nil {
 		return nil, err

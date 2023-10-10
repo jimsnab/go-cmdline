@@ -473,7 +473,8 @@ An argument value is specified as `<` _type_ `-` _variable name_ `>`, where _typ
 
 ## Simple Position-Oriented Parameters
 A command can have optional arguments based on their position. Only a single list of
-position-based arguments can be specified.
+position-based arguments can be specified. A list of multiple values can be specified
+at the last position using an asterisk `*`.
 
 <details><summary>Syntax</summary>
 
@@ -495,6 +496,16 @@ or
 	)
 ```
 
+or
+
+```
+  // named command (multiple named commands supported)
+	cl.RegisterCommand(
+		myHandler,
+		"mycommand *<string-multiPosArg>",
+	)
+```
+
 </details>
 <br/>
 
@@ -511,6 +522,9 @@ The right side arguments can be optional.
 
 </details>
 <br/>
+
+Position-oriented parameters cannot have values that start with a dash, as
+that is used to match named parameters.
 
 ## Colon and Comma Delimeters
 
@@ -669,9 +683,9 @@ where `myType` fulfills the following interface:
 ```
 type OptionTypes interface {
 	StringToAttributes(typeName string, spec string) *OptionTypeAttributes
-	MakeValue(typeIndex int, inputValue string) (interface{}, error)
-	NewList(typeIndex int) (interface{}, error)
-	AppendList(typeIndex int, list interface{}, inputValue string) (interface{}, error)
+	MakeValue(typeIndex int, inputValue string) (any, error)
+	NewList(typeIndex int) (any, error)
+	AppendList(typeIndex int, list any, inputValue string) (any, error)
 }
 ```
 

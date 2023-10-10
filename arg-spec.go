@@ -11,7 +11,8 @@ type argValueSpec struct {
 	ArgIndex     int
 	OptionName   string
 	Optional     bool
-	DefaultValue interface{}
+	Multi        bool
+	DefaultValue any
 }
 
 type argSpec struct {
@@ -156,6 +157,12 @@ func (cl *CommandLine) newArgSpec(spec string, primaryArg bool) *argSpec {
 				c = spec[parsePos]
 			}
 
+			if c == '*' {
+				avs.Multi = true
+				parsePos++
+				c = spec[parsePos]
+			}
+
 			if c != '<' {
 				panic(parseError("'<'", orgSpec, spec, parsePos))
 			}
@@ -246,14 +253,14 @@ func (cl *CommandLine) newArgSpec(spec string, primaryArg bool) *argSpec {
 	return &as
 }
 
-func (as *argSpec) storeArg(effectiveArgs *map[string]interface{}, spec *argValueSpec, input string) error {
-	if as.MultiValue {
+func (as *argSpec) storeArg(effectiveArgs *map[string]any, spec *argValueSpec, input string) error {
+	if as.MultiValue || spec.Multi {
 		//
 		// The very first arg will exist in effectiveArgs map with nil; convert it to a list.
 		// Subsequent args of the same option will be added to the list.
 		//
 		var err error
-		var list interface{}
+		var list any
 		optVal := (*effectiveArgs)[spec.OptionName]
 		if optVal == nil {
 			list, err = as.CmdLine.optionTypes.NewList(spec.ArgIndex)
@@ -282,7 +289,7 @@ func (as *argSpec) storeArg(effectiveArgs *map[string]interface{}, spec *argValu
 	return nil
 }
 
-func (as *argSpec) Parse(effectiveArgs *map[string]interface{}, colonValue *string, subsequentArgs []string) (int, error) {
+func (as *argSpec) Parse(effectiveArgs *map[string]any, colonValue *string, subsequentArgs []string) (int, error) {
 
 	argsUsed := 0
 	input := colonValue
@@ -311,6 +318,20 @@ func (as *argSpec) Parse(effectiveArgs *map[string]interface{}, colonValue *stri
 		if err != nil {
 			return 0, err
 		}
+
+		if as.ValueSpecs[0].Multi && as.ValuesDelim == ' ' {
+			for {
+				if argsUsed >= len(subsequentArgs) || strings.HasPrefix(subsequentArgs[argsUsed], "-") {
+					break
+				}
+
+				err := as.storeArg(effectiveArgs, as.ValueSpecs[0], subsequentArgs[argsUsed])
+				if err != nil {
+					return 0, err
+				}
+				argsUsed++
+			}
+		}
 	} else {
 		var values []string
 
@@ -329,6 +350,13 @@ func (as *argSpec) Parse(effectiveArgs *map[string]interface{}, colonValue *stri
 				}
 				values = append(values, subsequentArgs[argsUsed])
 				argsUsed++
+
+				if as.ValueSpecs[i].Multi {
+					for argsUsed < len(subsequentArgs) && !strings.HasPrefix(subsequentArgs[argsUsed], "-") {
+						values = append(values, subsequentArgs[argsUsed])
+						argsUsed++
+					}
+				}
 			}
 		}
 
@@ -351,6 +379,22 @@ func (as *argSpec) Parse(effectiveArgs *map[string]interface{}, colonValue *stri
 				err := as.storeArg(effectiveArgs, as.ValueSpecs[i], values[i])
 				if err != nil {
 					return 0, err
+				}
+
+				if valueSpec.Multi && as.ValuesDelim == ' ' {
+					for {
+						if i+1 >= len(values) {
+							break
+						}
+
+						value := values[i+1]
+						values = append(values[0:i], values[i+2:]...)
+
+						err := as.storeArg(effectiveArgs, as.ValueSpecs[i], value)
+						if err != nil {
+							return 0, err
+						}
+					}
 				}
 			}
 		}

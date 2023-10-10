@@ -57,10 +57,10 @@ func (cl *CommandLine) cmdToSummary(cmd *command) (summary map[string]any) {
 	primary := map[string]string{}
 	primary[cmd.PrimaryArgSpec.String()] = cmd.PrimaryArgSpec.HelpText
 	summary["primary"] = primary
-	
+
 	if len(cmd.OptionSpecs.values) > 0 {
 		opts := map[string]string{}
-		for _,opt := range cmd.OptionSpecs.values {
+		for _, opt := range cmd.OptionSpecs.values {
 			opts[opt.String()] = opt.HelpText
 		}
 		summary["options"] = opts
@@ -74,7 +74,7 @@ func (cl *CommandLine) Summary() (summary map[string]any) {
 
 	if len(cl.globalOptions.values) > 0 {
 		opts := map[string]string{}
-		for _,gopt := range cl.globalOptions.values {
+		for _, gopt := range cl.globalOptions.values {
 			opts[gopt.argSpec.String()] = gopt.argSpec.HelpText
 		}
 		summary["global_options"] = opts
@@ -83,9 +83,9 @@ func (cl *CommandLine) Summary() (summary map[string]any) {
 	if cl.unnamedCmd != nil {
 		summary["unnamed"] = cl.cmdToSummary(cl.unnamedCmd)
 	}
-	
+
 	cmds := []any{}
-	for _,cmd := range cl.commands.values {
+	for _, cmd := range cl.commands.values {
 		if cmd == cl.unnamedCmd {
 			continue
 		}
@@ -204,7 +204,7 @@ func (cl *CommandLine) helpPrintln(text string) {
 	cl.printQueue = append(cl.printQueue, helpLine{str1: text, str2: "", cols: 1})
 }
 
-func (cl *CommandLine) helpPrintf(fmtString string, args ...interface{}) {
+func (cl *CommandLine) helpPrintf(fmtString string, args ...any) {
 	cl.printQueue = append(cl.printQueue, helpLine{str1: fmt.Sprintf(fmtString, args...), str2: "", cols: 1})
 }
 

@@ -2,6 +2,7 @@ package cmdline
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -40,7 +41,7 @@ func (tot *testOptionTypes) StringToAttributes(typeName string, spec string) *Op
 	}
 }
 
-func (tot *testOptionTypes) MakeValue(typeIndex int, inputValue string) (interface{}, error) {
+func (tot *testOptionTypes) MakeValue(typeIndex int, inputValue string) (any, error) {
 	if typeIndex == 0 {
 		if inputValue == "pass" || inputValue == "fail" {
 			return inputValue, nil
@@ -52,7 +53,7 @@ func (tot *testOptionTypes) MakeValue(typeIndex int, inputValue string) (interfa
 	}
 }
 
-func (tot *testOptionTypes) NewList(typeIndex int) (interface{}, error) {
+func (tot *testOptionTypes) NewList(typeIndex int) (any, error) {
 	if typeIndex == 0 {
 		return []string{}, nil
 	} else {
@@ -60,7 +61,7 @@ func (tot *testOptionTypes) NewList(typeIndex int) (interface{}, error) {
 	}
 }
 
-func (tot *testOptionTypes) AppendList(typeIndex int, list interface{}, inputValue string) (interface{}, error) {
+func (tot *testOptionTypes) AppendList(typeIndex int, list any, inputValue string) (any, error) {
 	value, err := tot.MakeValue(typeIndex, inputValue)
 	if err != nil {
 		return nil, err
@@ -141,7 +142,7 @@ func TestCommandWithProcessingContext(t *testing.T) {
 
 	args := []string{}
 	err := cl.ProcessWithContext("passed thru", args)
-	
+
 	expectError(t, nil, err)
 	expectString(t, "passed thru", executed.(string))
 }
@@ -698,6 +699,205 @@ func TestUnnamedPlainWithTokenSpec(t *testing.T) {
 	expectError(t, nil, err)
 	expectBool(t, true, executed)
 	expectString(t, "expected", value)
+}
+
+func TestUnnamedPlainWithTokenSpecOptional(t *testing.T) {
+	cl := NewCommandLine()
+
+	executed := false
+	var value []string
+	cl.RegisterCommand(
+		func(values Values) error {
+			executed = true
+			value = values["test"].([]string)
+			return nil
+		},
+		"~ *<string-test>", // unnamed single argument can specify position-based tokens
+	)
+
+	args := []string{"expected"}
+	err := cl.Process(args)
+
+	expectError(t, nil, err)
+	expectBool(t, true, executed)
+	expectBool(t, true, value != nil)
+	expectBool(t, true, len(value) == 1)
+}
+
+func TestUnnamedPlainWithTokenSpecOptional2(t *testing.T) {
+	cl := NewCommandLine()
+
+	executed := false
+	var value []string
+	cl.RegisterCommand(
+		func(values Values) error {
+			executed = true
+			value = values["test"].([]string)
+			return nil
+		},
+		"~ *<string-test>",
+	)
+
+	args := []string{"expected", "second"}
+	err := cl.Process(args)
+
+	expectError(t, nil, err)
+	expectBool(t, true, executed)
+	expectBool(t, true, value != nil)
+	expectBool(t, true, len(value) == 2)
+}
+
+func TestUnnamedPlainWithTokenSpecOptional3(t *testing.T) {
+	cl := NewCommandLine()
+
+	executed := false
+	cl.RegisterCommand(
+		func(values Values) error {
+			executed = true
+			return nil
+		},
+		"~ <string-test1> *<string-test2>",
+	)
+
+	args := []string{"expected"}
+	err := cl.Process(args)
+
+	expectError(t, NewCommandLineError("Required value test2 is missing"), err)
+	expectBool(t, false, executed)
+}
+
+func TestUnnamedPlainWithTokenSpecOptional4(t *testing.T) {
+	cl := NewCommandLine()
+
+	executed := false
+	var value1 string
+	var value2 []string
+	cl.RegisterCommand(
+		func(values Values) error {
+			executed = true
+			value1 = values["test1"].(string)
+			value2 = values["test2"].([]string)
+			return nil
+		},
+		"~ <string-test1> *<string-test2>",
+	)
+
+	args := []string{"expected", "second"}
+	err := cl.Process(args)
+
+	expectError(t, nil, err)
+	expectBool(t, true, executed)
+	expectString(t, "expected", value1)
+	expectBool(t, true, value2 != nil)
+	expectBool(t, true, len(value2) == 1)
+}
+
+func TestUnnamedPlainWithTokenSpecOptional5(t *testing.T) {
+	cl := NewCommandLine()
+
+	executed := false
+	var value1 string
+	var value2 []string
+	cl.RegisterCommand(
+		func(values Values) error {
+			executed = true
+			value1 = values["test1"].(string)
+			value2 = values["test2"].([]string)
+			return nil
+		},
+		"~ <string-test1> *<string-test2>",
+	)
+
+	args := []string{"expected", "second", "third"}
+	err := cl.Process(args)
+
+	expectError(t, nil, err)
+	expectBool(t, true, executed)
+	expectString(t, "expected", value1)
+	expectBool(t, true, value2 != nil)
+	expectBool(t, true, len(value2) == 2)
+}
+
+func TestUnnamedPlainWithTokenSpecOptional6(t *testing.T) {
+	cl := NewCommandLine()
+
+	executed := false
+	cl.RegisterCommand(
+		func(values Values) error {
+			executed = true
+			return nil
+		},
+		"~ <string-test1> *<string-test2> <string-unreachable>",
+	)
+
+	args := []string{"expected", "second", "third"}
+	err := cl.Process(args)
+
+	expectError(t, NewCommandLineError("Required value unreachable is missing"), err)
+	expectBool(t, false, executed)
+}
+
+func TestUnnamedPlainWithTokenSpecOptional7(t *testing.T) {
+	cl := NewCommandLine()
+
+	executed := false
+	cl.RegisterCommand(
+		func(values Values) error {
+			executed = true
+			return nil
+		},
+		"~ <string-test1> *<string-test2>",
+		"--flag?Suffix flag",
+	)
+
+	args := []string{"expected", "second", "--flag", "third"}
+	err := cl.Process(args)
+
+	expectError(t, NewCommandLineError("Unrecognized command argument: third"), err)
+	expectBool(t, false, executed)
+}
+
+func TestNamedPlainWithTokenSpecOptional(t *testing.T) {
+	cl := NewCommandLine()
+
+	executed := false
+	var value1 string
+	var value2 []string
+	cl.RegisterCommand(
+		func(values Values) error {
+			executed = true
+			value1 = values["test1"].(string)
+			value2 = values["test2"].([]string)
+			return nil
+		},
+		"test <string-test1> *<string-test2>",
+	)
+
+	args := []string{"test", "expected", "second", "third"}
+	err := cl.Process(args)
+
+	expectError(t, nil, err)
+	expectBool(t, true, executed)
+	expectString(t, "expected", value1)
+	expectBool(t, true, value2 != nil)
+	expectBool(t, true, len(value2) == 2)
+}
+
+func TestNamedPlainWithTokenSpecOptionalBadSyntax(t *testing.T) {
+	cl := NewCommandLine()
+
+	expectPanicError(
+		t,
+		errors.New(`command line template syntax error! expected '<' at "[<string-test2>]" of "test <string-test1> *[<string-test2>]"`),
+		func() {
+			cl.RegisterCommand(
+				func(values Values) error {
+					return nil
+				},
+				"test <string-test1> *[<string-test2>]",
+			)
+		},
+	)
 }
 
 func TestPrimaryCommandUnnamed(t *testing.T) {
@@ -1352,7 +1552,7 @@ func TestMissingOptionalValue(t *testing.T) {
 	expectError(t, nil, err)
 	expectBool(t, false, hasFlag)
 
-	expectString(t,  "{\"named\":[{\"options\":{\"[--flag]\":\"\"},\"primary\":{\"test\":\"\"}}]}", cl.summaryText())
+	expectString(t, "{\"named\":[{\"options\":{\"[--flag]\":\"\"},\"primary\":{\"test\":\"\"}}]}", cl.summaryText())
 }
 
 func TestMissingRequiredValue(t *testing.T) {

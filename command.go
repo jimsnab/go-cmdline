@@ -4,7 +4,7 @@ import "fmt"
 
 const basePanic = "command line template syntax error! expected "
 
-type Values map[string]interface{}
+type Values map[string]any
 type CommandHandler func(values Values) error
 
 type command struct {
