@@ -356,6 +356,18 @@ func (cl *CommandLine) PrimaryCommand(args []string) string {
 		}
 	}
 
+	// join spaces and try again
+	if len(args) > 1 && !strings.HasPrefix(args[1], "-") {
+		subargs := []string{
+			fmt.Sprintf("%s %s", args[0], args[1]),
+		}
+		subargs = append(subargs, args[2:]...)
+		recursive := cl.PrimaryCommand(subargs)
+		if recursive != "" {
+			return recursive
+		}
+	}
+
 	return ""
 }
 

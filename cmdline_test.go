@@ -944,6 +944,38 @@ func TestPrimaryCommandUnnamed(t *testing.T) {
 	expectString(t, "", primary)
 }
 
+func TestPrimaryCommandSpaces(t *testing.T) {
+	cl := NewCommandLine()
+
+	cl.RegisterCommand(
+		func(values Values) error {
+			return nil
+		},
+		"test+command",
+		"[--arg]",
+	)
+
+	args := []string{"test", "command"}
+	primary := cl.PrimaryCommand(args)
+	expectString(t, "test command", primary)
+
+	args = []string{"test", "commands"}
+	primary = cl.PrimaryCommand(args)
+	expectString(t, "", primary)
+
+	args = []string{"test", "command", "arg"}
+	primary = cl.PrimaryCommand(args)
+	expectString(t, "test command", primary)
+
+	args = []string{"test", "command", "--arg"}
+	primary = cl.PrimaryCommand(args)
+	expectString(t, "test command", primary)
+
+	args = []string{"test", "--arg", "command"}
+	primary = cl.PrimaryCommand(args)
+	expectString(t, "", primary)
+}
+
 func TestPrintCommandUnnamed(t *testing.T) {
 	cl := NewCommandLine()
 
