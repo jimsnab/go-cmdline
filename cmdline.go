@@ -706,6 +706,9 @@ func (cl *CommandLine) ProcessWithContext(processingContext any, args []string) 
 
 		var primaryArgSwitch string
 		primaryArgSwitch, primaryArgValue = cl.splitColon(args[0])
+		if primaryArgSwitch == "~" {
+			primaryArgSwitch = "" // force ~ not to be found
+		}
 
 		var exists bool
 		cmd, exists = cl.commands.values[primaryArgSwitch]
@@ -725,7 +728,12 @@ func (cl *CommandLine) ProcessWithContext(processingContext any, args []string) 
 			}
 
 			if !exists {
-				return NewCommandLineError("Unrecognized command: " + primaryArgSwitch)
+				// look for a default arg
+				cmd, exists = cl.commands.values["~"]
+				if !exists {
+					return NewCommandLineError("Unrecognized command: " + primaryArgSwitch)
+				}
+				argBaseIndex = 0
 			}
 		}
 	}

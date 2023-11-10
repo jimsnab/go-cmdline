@@ -1475,6 +1475,41 @@ func TestPrintCommandsTwoCommands(t *testing.T) {
 	expectString(t, "Matching Commands:\n\n  first              1\n    -longoptionname  test\n\n", output)
 }
 
+func TestDefaultCommand(t *testing.T) {
+	cl := NewCommandLine()
+
+	helped := false
+	cl.RegisterCommand(
+		func(values Values) error {
+			helped = true
+			return nil
+		},
+		"help",
+	)
+
+	var args []string
+	cl.RegisterCommand(
+		func(values Values) error {
+			args = values["args"].([]string)
+			return nil
+		},
+		"~ *<string-args>",
+	)
+
+	line := []string{"help"}
+	err := cl.Process(line)
+	expectError(t, nil, err)
+	expectBool(t, true, helped)
+	expectBool(t, true, args == nil)
+	helped = false
+
+	line = []string{"other"}
+	err = cl.Process(line)
+	expectError(t, nil, err)
+	expectBool(t, false, helped)
+	expectBool(t, true, args != nil)
+}
+
 func TestIndent(t *testing.T) {
 	cl := NewCommandLine()
 

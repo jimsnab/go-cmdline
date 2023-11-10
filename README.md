@@ -21,7 +21,7 @@ Let's look at a process that we name `myexample` that has no command line argume
 <details>
 	<summary>Code</summary>
 
-```
+```go
 import (
   "github.com/jimsnab/go-cmdline"
   "fmt"
@@ -54,7 +54,7 @@ Let's build and run it.
 
 <details><summary>Build and Run</summary>
 
-```
+```bash
 $ # build myexample
 $ go build
 
@@ -86,7 +86,7 @@ Fine. Let's add some help. Add `?This is an example` to the code above.
 
 <details><summary>Build and Run</summary>
 
-```
+```bash
 $ go build
 $ ./myexample --help
 Description: This is an example
@@ -121,7 +121,7 @@ Now the program requires an argument, called `name`.
 <details><summary>Build and Run</summary>
 
 
-```
+```bash
 $ go build
 $ ./myexample
 Usage: myexample <command>
@@ -178,7 +178,7 @@ func main() {
 </details>
 <details><summary>Build and Run</summary>
 
-```
+```bash
 $ go build
 $ ./myexample
 Usage: myexample <command>
@@ -201,7 +201,7 @@ $ ./myexample now
 ## Command Handler Function
 A command handler receives a map of command line arguments and returns an `error`.
 
-```
+```go
 func myHandler (args cmdline.Values) error {
   // your code
 	return err
@@ -254,7 +254,7 @@ func myHandler(args cmdline.Values) error {
 </details>
 <details><summary>Build and Run</summary>
 
-```
+```bash
 $ go build
 $ ./myexample
 Usage: myexample <command> <options>
@@ -290,7 +290,7 @@ func myHandler(args cmdline.Values) error {
 </details>
 <details><summary>Build and Run</summary>
 
-```
+```bash
 $ go build
 $ ./myexample format -i /tmp/example.cfg
 0
@@ -302,7 +302,7 @@ $ ./myexample format -i /tmp/example.cfg
 
 As shown above, the standard pattern for showing help is:
 
-```
+```go
 	args := os.Args[1:] // exclude executable name in os.Args[0]
 	err := cl.Process(args)
 	if err != nil {
@@ -323,7 +323,7 @@ In the "format" example above:
 
 <details><summary>Help Example</summary>
 
-```
+```bash
 $ ./myexample format?
 Command Options:
 
@@ -342,7 +342,7 @@ or simply `<filter>`:
 
 <details><summary>Help Example</summary>
 
-```
+```bash
 $ ./myexample form
 Usage: myexample <command> <options>
 
@@ -373,7 +373,7 @@ Global options must be provided on the command line before the command.
 <details>
  <summary>Code</summary>
 
-```
+```go
 package main
 
 import (
@@ -426,7 +426,7 @@ func exampleHandler(args cmdline.Values) error {
 <details>
 	<summary>Build and Run</summary>
 
-```
+```bash
 $ go build
 $ ./myexample
 Usage: myexample <global options> <command> <options>
@@ -478,7 +478,7 @@ at the last position using an asterisk `*`.
 
 <details><summary>Syntax</summary>
 
-```
+```go
 	// unnamed single command
 	cl.RegisterCommand(
 		myHandler,
@@ -488,7 +488,7 @@ at the last position using an asterisk `*`.
 
 or
 
-```
+```go
     // named command (multiple named commands supported)
 	cl.RegisterCommand(
 		myHandler,
@@ -498,7 +498,7 @@ or
 
 or
 
-```
+```go
     // one or more values combined into an array
 	cl.RegisterCommand(
 		myHandler,
@@ -513,7 +513,7 @@ The right side arguments can be optional.
 
 <details><summary>Syntax</summary>
 
-```
+```go
 	cl.RegisterCommand(
 		myHandler,
 		"~ <string-posarg1> [<string-posarg2>] [<string-posarg3>]",
@@ -525,6 +525,28 @@ The right side arguments can be optional.
 
 Position-oriented parameters cannot have values that start with a dash, as
 that is used to match named parameters.
+
+It is possible to register named command handlers along with a position-oriented 
+handler. Named command handlers have priority.
+
+For example, it is possible to add a catch-all handler as shown here:
+
+<details><summary>Syntax</summary>
+
+```go
+	cl.RegisterCommand(
+		namedHandler,
+		"named <string-arg>",
+	)
+
+	cl.RegisterCommand(
+		defaultHandler,
+		"~ *<string-args>",
+	)
+```
+
+</details>
+<br/>
 
 ## Colon and Comma Delimeters
 
@@ -582,7 +604,7 @@ used as the default for each missing optional value.
 
 <details><summary>Example Run</summary>
 
-```
+```bash
 $ ./myexample
 Usage: myexample <command> <options>
 
@@ -651,7 +673,7 @@ func main() {
 
 <details><summary>Example Run</summary>
 
-```
+```bash
 $ ./myexample view table
 view table...
 ```
@@ -698,7 +720,7 @@ func exampleHandler(args cmdline.Values) error {
 
 <details><summary>Output</summary>
 
-```
+```bash
 $ ./myexample
 Usage: myexample <options>
 
@@ -719,7 +741,7 @@ To support zero or more multiple switches, make the argument optional with the a
 
 Your program can use the parser to extract the primary command.
 
-```
+```go
 	primaryCmd := cl.PrimaryCommand(os.Args[1:])
 ```
 
@@ -732,13 +754,13 @@ An empty string is returned if the command line arguments do not map to a comman
 You can write your own `cmdline.OptionTypes` interface to convert arguments to your own
 types and structs. Construct the command line object with:
 
-```
+```go
 	cl := cmdline.NewCustomTypesCommandLine(myType)
 ```
 
 where `myType` fulfills the following interface:
 
-```
+```go
 type OptionTypes interface {
 	StringToAttributes(typeName string, spec string) *OptionTypeAttributes
 	MakeValue(typeIndex int, inputValue string) (any, error)
