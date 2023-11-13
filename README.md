@@ -773,7 +773,7 @@ Your implementation determines valid values for `typeIndex`. Typically it is an 
 enumeration.
 
 * `StringToAttributes` converts type string `spec` to the corresponding index and typed default value (the two members of `cmdline.OptionTypeAttributes`)
-* `MakeValue` coverts command line input `inputValue` into the corresponding typed value
+* `MakeValue` converts command line input `inputValue` into the corresponding typed value
 * `NewList` allocates a new typed array (see repeated values above)
 * `AppendList` appends a value to the typed array provided by `NewList`
 
