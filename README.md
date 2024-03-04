@@ -752,7 +752,10 @@ An empty string is returned if the command line arguments do not map to a comman
 ## Extending Types
 
 You can write your own `cmdline.OptionTypes` interface to convert arguments to your own
-types and structs. Construct the command line object with:
+types and structs. It takes a moment to understand this interface, but it ultimately
+pretty simple.
+
+Construct the command line object with:
 
 ```go
 	cl := cmdline.NewCustomTypesCommandLine(myType)
@@ -776,6 +779,67 @@ enumeration.
 * `MakeValue` converts command line input `inputValue` into the corresponding typed value
 * `NewList` allocates a new typed array (see repeated values above)
 * `AppendList` appends a value to the typed array provided by `NewList`
+
+A custom types handler owns supporting all the `spec` types used in your command line.
+It is often desired to retain the default types (`bool`, `string`, `int`, `float64`,
+`path`). This can be achieved via `NewDefaultOptionTypes()`, which provides the
+default interface, so `myType` can fall back to the default implementation on unknown
+`spec` types or unknown `typeIndex` values.
+
+### Example
+
+```
+type (
+	uint64Type struct {}
+)
+
+func (t *uint64Type) StringToAttributes(typeName string, spec string) (a *cmdline.OptionTypeAttributes) {
+	// convert the name of the arg type to an index and default value
+	if spec == "uint64" {
+		a = &cmdline.OptionTypeAttributes{
+			Index: 0,	// arbitrary value; each spec type must have a unique index
+			DefaultValue: uint64(0),
+		}
+	}
+
+	// return nil if the type is unknown
+	return
+}
+
+func (t *uint64Type) MakeValue(typeIndex int, inputValue string) (v any, err error) {
+	// switch on typeIndex for all types supported
+	if typeIndex == 0 {
+		n, err := strconv.ParseUint(inputValue, 10, 64)
+		if err != nil {
+			return
+		}
+
+		v = n
+	}
+	return
+}
+
+func (t *uint64Type) NewList(typeIndex int) (v any, err error) {
+	// make an empty list for the supported type
+	if typeIndex == 0 {
+		v = []uint64{}
+	}
+	return
+}
+
+func (t *uint64Type) AppendList(typeIndex int, list any, inputValue string) (v any, err error) {
+	// append the input value to the list
+	if typeIndex == 0 {
+		n, err := t.MakeValue(typeIndex, inputValue)
+		if err != nil {
+			return
+		}
+		l := list.([]uint64)
+		v = append(l, n.(uint64))
+	}
+	return
+}
+```
 
 ## Descriptor errors
 
