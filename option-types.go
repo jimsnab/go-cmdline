@@ -28,14 +28,19 @@ const (
 	argTypePath
 )
 
-type defaultOptionTypes struct {
+type DefaultOptionTypes struct {
 }
 
-func newDefaultOptionTypes() *defaultOptionTypes {
-	return &defaultOptionTypes{}
+// Returns the OptionTypes interface for bool, int, float64, string and path. The lastIndex
+// helps the caller know what the type index range is (0..lastIndex), to extend with
+// custom types in a wrapper interface.
+func NewDefaultOptionTypes() (dot *DefaultOptionTypes, lastIndex int) {
+	dot = &DefaultOptionTypes{}
+	lastIndex = int(argTypePath) + 1
+	return
 }
 
-func (dot *defaultOptionTypes) StringToAttributes(typeName string, spec string) *OptionTypeAttributes {
+func (dot *DefaultOptionTypes) StringToAttributes(typeName string, spec string) *OptionTypeAttributes {
 	switch typeName {
 	case "bool":
 		return &OptionTypeAttributes{Index: int(argTypeBool), DefaultValue: bool(false)}
@@ -52,7 +57,7 @@ func (dot *defaultOptionTypes) StringToAttributes(typeName string, spec string) 
 	}
 }
 
-func (dot *defaultOptionTypes) MakeValue(typeIndex int, inputValue string) (any, error) {
+func (dot *DefaultOptionTypes) MakeValue(typeIndex int, inputValue string) (any, error) {
 	var result any
 	var err error
 
@@ -80,7 +85,7 @@ func (dot *defaultOptionTypes) MakeValue(typeIndex int, inputValue string) (any,
 	return result, err
 }
 
-func (dot *defaultOptionTypes) NewList(typeIndex int) (any, error) {
+func (dot *DefaultOptionTypes) NewList(typeIndex int) (any, error) {
 	switch argType(typeIndex) {
 	case argTypeBool:
 		return []bool{}, nil
@@ -102,7 +107,7 @@ func (dot *defaultOptionTypes) NewList(typeIndex int) (any, error) {
 	}
 }
 
-func (dot *defaultOptionTypes) AppendList(typeIndex int, list any, inputValue string) (any, error) {
+func (dot *DefaultOptionTypes) AppendList(typeIndex int, list any, inputValue string) (any, error) {
 	value, err := dot.MakeValue(typeIndex, inputValue)
 	if err != nil {
 		return nil, err

@@ -43,7 +43,7 @@ func newCommandLine(optionTypes *OptionTypes) *CommandLine {
 	cl.globalOptions = newOrderedGlobalOptionMap()
 
 	if optionTypes == nil {
-		cl.optionTypes = newDefaultOptionTypes()
+		cl.optionTypes, _ = NewDefaultOptionTypes()
 	} else {
 		cl.optionTypes = *optionTypes
 	}

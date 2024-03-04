@@ -3100,7 +3100,7 @@ func TestPrintHelpGlobalOptionsMultipleCommands(t *testing.T) {
 }
 
 func TestInvalidOptionTypes(t *testing.T) {
-	dot := defaultOptionTypes{}
+	dot := DefaultOptionTypes{}
 
 	expectPanic(t, func() { dot.StringToAttributes("foo", "spec") })
 	expectPanic(t, func() { dot.MakeValue(-1, "spec") })
