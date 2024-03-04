@@ -786,60 +786,77 @@ It is often desired to retain the default types (`bool`, `string`, `int`, `float
 default interface, so `myType` can fall back to the default implementation on unknown
 `spec` types or unknown `typeIndex` values.
 
-### Example
+<details><summary>Example</summary>
 
 ```
 type (
-	uint64Type struct {}
+	cmdLineTypes struct {
+		dot   *cmdline.DefaultOptionTypes
+		index int
+	}
 )
 
-func (t *uint64Type) StringToAttributes(typeName string, spec string) (a *cmdline.OptionTypeAttributes) {
-	// convert the name of the arg type to an index and default value
-	if spec == "uint64" {
-		a = &cmdline.OptionTypeAttributes{
-			Index: 0,	// arbitrary value; each spec type must have a unique index
-			DefaultValue: uint64(0),
-		}
-	}
+func newCmdLineTypes() *cmdLineTypes {
+	ut := cmdLineTypes{}
+	ut.dot, ut.index = cmdline.NewDefaultOptionTypes()
+	return &ut
+}
 
-	// return nil if the type is unknown
+func (t *cmdLineTypes) StringToAttributes(typeName string, spec string) (a *cmdline.OptionTypeAttributes) {
+	if typeName == "uint64" {
+		a = &cmdline.OptionTypeAttributes{
+			DefaultValue: uint64(0),
+			Index:        t.index,
+		}
+	} else {
+		a = t.dot.StringToAttributes(typeName, spec)
+	}
 	return
 }
 
-func (t *uint64Type) MakeValue(typeIndex int, inputValue string) (v any, err error) {
-	// switch on typeIndex for all types supported
-	if typeIndex == 0 {
-		n, err := strconv.ParseUint(inputValue, 10, 64)
-		if err != nil {
-			return
+func (t *cmdLineTypes) MakeValue(typeIndex int, inputValue string) (v any, err error) {
+	if typeIndex == t.index {
+		var n uint64
+		if inputValue != "" {
+			n, err = strconv.ParseUint(inputValue, 10, 64)
+			if err != nil {
+				return
+			}
 		}
 
 		v = n
+	} else {
+		v, err = t.dot.MakeValue(typeIndex, inputValue)
 	}
 	return
 }
 
-func (t *uint64Type) NewList(typeIndex int) (v any, err error) {
-	// make an empty list for the supported type
-	if typeIndex == 0 {
+func (t *cmdLineTypes) NewList(typeIndex int) (v any, err error) {
+	if typeIndex == t.index {
 		v = []uint64{}
+	} else {
+		v, err = t.dot.NewList(typeIndex)
 	}
 	return
 }
 
-func (t *uint64Type) AppendList(typeIndex int, list any, inputValue string) (v any, err error) {
-	// append the input value to the list
-	if typeIndex == 0 {
-		n, err := t.MakeValue(typeIndex, inputValue)
+func (t *cmdLineTypes) AppendList(typeIndex int, list any, inputValue string) (v any, err error) {
+	if typeIndex == t.index {
+		var n any
+		n, err = t.MakeValue(typeIndex, inputValue)
 		if err != nil {
 			return
 		}
 		l := list.([]uint64)
 		v = append(l, n.(uint64))
+	} else {
+		v, err = t.dot.AppendList(typeIndex, list, inputValue)
 	}
 	return
 }
 ```
+
+</details>
 
 ## Descriptor errors
 
